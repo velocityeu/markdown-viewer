@@ -1,5 +1,6 @@
 import { invoke } from "@tauri-apps/api/core";
 import { useCallback, useEffect, useState } from "react";
+import { ChevronIcon, FileIcon, FolderIcon } from "./icons";
 
 interface DirEntry {
   name: string;
@@ -10,6 +11,7 @@ interface DirEntry {
 interface FileTreeProps {
   rootPath: string;
   activePath: string | null;
+  filter?: string;
   onSelectFile: (path: string) => void;
 }
 
@@ -17,6 +19,7 @@ interface TreeNodeProps {
   entry: DirEntry;
   depth: number;
   activePath: string | null;
+  filter: string;
   expandedPaths: Set<string>;
   onToggle: (path: string) => void;
   onSelectFile: (path: string) => void;
@@ -24,6 +27,10 @@ interface TreeNodeProps {
 
 function normalizePath(path: string) {
   return path.replace(/\//g, "\\").toLowerCase();
+}
+
+function pathsEqual(left: string, right: string) {
+  return normalizePath(left) === normalizePath(right);
 }
 
 function getParentPath(filePath: string) {
@@ -42,10 +49,18 @@ function isWithinRoot(filePath: string, rootPath: string) {
   );
 }
 
+function matchesFilter(name: string, filter: string) {
+  if (!filter.trim()) {
+    return true;
+  }
+  return name.toLowerCase().includes(filter.trim().toLowerCase());
+}
+
 function TreeNode({
   entry,
   depth,
   activePath,
+  filter,
   expandedPaths,
   onToggle,
   onSelectFile,
@@ -80,19 +95,33 @@ function TreeNode({
   }, [entry.is_dir, entry.path, isExpanded]);
 
   if (!entry.is_dir) {
-    const isActive = activePath === entry.path;
+    if (!matchesFilter(entry.name, filter)) {
+      return null;
+    }
+
+    const isActive = activePath ? pathsEqual(activePath, entry.path) : false;
     return (
       <button
         type="button"
         className={`tree-item file ${isActive ? "active" : ""}`}
-        style={{ paddingLeft: `${depth * 14 + 28}px` }}
+        style={{ paddingLeft: `${depth * 16 + 24}px` }}
         title={entry.path}
         onClick={() => onSelectFile(entry.path)}
       >
-        <span className="tree-icon">📄</span>
+        <FileIcon size={15} className="tree-svg" />
         <span className="tree-label">{entry.name}</span>
       </button>
     );
+  }
+
+  const visibleChildren = children.filter(
+    (child) => child.is_dir || matchesFilter(child.name, filter),
+  );
+  const hasVisibleChildren = visibleChildren.length > 0;
+  const folderMatches = matchesFilter(entry.name, filter);
+
+  if (filter && !folderMatches && !hasVisibleChildren && !isExpanded) {
+    return null;
   }
 
   return (
@@ -100,33 +129,34 @@ function TreeNode({
       <button
         type="button"
         className="tree-item folder"
-        style={{ paddingLeft: `${depth * 14 + 10}px` }}
+        style={{ paddingLeft: `${depth * 16 + 8}px` }}
         title={entry.path}
         onClick={() => onToggle(entry.path)}
       >
-        <span className="tree-chevron">{isExpanded ? "▾" : "▸"}</span>
-        <span className="tree-icon">📁</span>
+        <ChevronIcon expanded={isExpanded} className="tree-chevron" />
+        <FolderIcon size={15} className="tree-svg" />
         <span className="tree-label">{entry.name}</span>
       </button>
 
       {isExpanded && (
         <div className="tree-children">
           {isLoading && (
-            <div className="tree-loading" style={{ paddingLeft: `${(depth + 1) * 14 + 28}px` }}>
+            <div className="tree-loading" style={{ paddingLeft: `${(depth + 1) * 16 + 24}px` }}>
               Loading...
             </div>
           )}
-          {!isLoading && children.length === 0 && (
-            <div className="tree-empty" style={{ paddingLeft: `${(depth + 1) * 14 + 28}px` }}>
+          {!isLoading && visibleChildren.length === 0 && (
+            <div className="tree-empty" style={{ paddingLeft: `${(depth + 1) * 16 + 24}px` }}>
               No markdown files
             </div>
           )}
-          {children.map((child) => (
+          {visibleChildren.map((child) => (
             <TreeNode
               key={child.path}
               entry={child}
               depth={depth + 1}
               activePath={activePath}
+              filter={filter}
               expandedPaths={expandedPaths}
               onToggle={onToggle}
               onSelectFile={onSelectFile}
@@ -138,7 +168,12 @@ function TreeNode({
   );
 }
 
-export function FileTree({ rootPath, activePath, onSelectFile }: FileTreeProps) {
+export function FileTree({
+  rootPath,
+  activePath,
+  filter = "",
+  onSelectFile,
+}: FileTreeProps) {
   const [rootEntries, setRootEntries] = useState<DirEntry[]>([]);
   const [expandedPaths, setExpandedPaths] = useState<Set<string>>(() => new Set([rootPath]));
   const [isLoading, setIsLoading] = useState(true);
@@ -193,6 +228,9 @@ export function FileTree({ rootPath, activePath, onSelectFile }: FileTreeProps) 
   }, []);
 
   const rootName = rootPath.split(/[\\/]/).pop() || rootPath;
+  const visibleRootEntries = rootEntries.filter(
+    (entry) => entry.is_dir || matchesFilter(entry.name, filter),
+  );
 
   return (
     <div className="file-tree">
@@ -202,23 +240,24 @@ export function FileTree({ rootPath, activePath, onSelectFile }: FileTreeProps) 
         title={rootPath}
         onClick={() => handleToggle(rootPath)}
       >
-        <span className="tree-chevron">{expandedPaths.has(rootPath) ? "▾" : "▸"}</span>
-        <span className="tree-icon">📂</span>
+        <ChevronIcon expanded={expandedPaths.has(rootPath)} className="tree-chevron" />
+        <FolderIcon size={15} className="tree-svg" />
         <span className="tree-label">{rootName}</span>
       </button>
 
       {expandedPaths.has(rootPath) && (
         <div className="tree-children">
           {isLoading && <div className="tree-loading">Loading...</div>}
-          {!isLoading && rootEntries.length === 0 && (
+          {!isLoading && visibleRootEntries.length === 0 && (
             <div className="tree-empty">No markdown files in this folder</div>
           )}
-          {rootEntries.map((entry) => (
+          {visibleRootEntries.map((entry) => (
             <TreeNode
               key={entry.path}
               entry={entry}
               depth={1}
               activePath={activePath}
+              filter={filter}
               expandedPaths={expandedPaths}
               onToggle={handleToggle}
               onSelectFile={onSelectFile}

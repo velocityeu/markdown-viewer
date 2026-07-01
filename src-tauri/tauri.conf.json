@@ -13,8 +13,8 @@
     "windows": [
       {
         "title": "Markdown Viewer",
-        "width": 1100,
-        "height": 800,
+        "width": 1280,
+        "height": 860,
         "minWidth": 480,
         "minHeight": 360,
         "dragDropEnabled": true

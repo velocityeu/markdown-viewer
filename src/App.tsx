@@ -1,8 +1,11 @@
 import { openUrl } from "@tauri-apps/plugin-opener";
-import { FileTree } from "./components/FileTree";
+import { ActivityBar, type ActivityView } from "./components/ActivityBar";
+import { ContentHeader } from "./components/ContentHeader";
+import { ExplorerPanel } from "./components/ExplorerPanel";
+import { FolderOpenIcon } from "./components/icons";
 import { MarkdownViewer } from "./components/MarkdownViewer";
 import { SearchBar } from "./components/SearchBar";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useDocumentSearch } from "./hooks/useDocumentSearch";
 import { useFolderBrowser } from "./hooks/useFolderBrowser";
 import { useMarkdownFile } from "./hooks/useMarkdownFile";
@@ -21,18 +24,12 @@ function App() {
     useMarkdownFile();
   const { zoom, zoomIn, zoomOut, resetZoom } = useZoom();
   const { recentFiles, addRecentFile } = useRecentFiles();
-  const {
-    folderPath,
-    sidebarOpen,
-    openFolder,
-    setFolderFromFile,
-    closeFolder,
-    toggleSidebar,
-  } = useFolderBrowser();
+  const { folderPath, openFolder, setFolderFromFile, closeFolder } = useFolderBrowser();
   const { isOpen, query, setQuery, openSearch, closeSearch } = useDocumentSearch(
     Boolean(document),
   );
   const matchCount = useSearchMatchCount(query, document?.content ?? "");
+  const [activeView, setActiveView] = useState<ActivityView>("explorer");
 
   useEffect(() => {
     if (document?.path) {
@@ -43,166 +40,135 @@ function App() {
     }
   }, [addRecentFile, document?.path, folderPath, setFolderFromFile]);
 
-  const openDefaultAppsSettings = async () => {
-    await openUrl("ms-settings:defaultapps");
-  };
-
-  const handlePrint = () => {
-    window.print();
-  };
+  useEffect(() => {
+    if (activeView === "search" && document) {
+      openSearch();
+    } else if (activeView === "search" && !document) {
+      closeSearch();
+    }
+  }, [activeView, closeSearch, document, openSearch]);
 
   const handleSelectFile = (path: string) => {
     void loadFile(path);
   };
 
+  const handleOpenSettings = () => {
+    setActiveView("settings");
+    void openUrl("ms-settings:defaultapps");
+  };
+
+  const showSearch = isOpen && document && activeView === "search";
+
   return (
     <div className={`app ${isDragging ? "is-dragging" : ""}`}>
-      <header className="toolbar">
-        <div className="toolbar-left">
-          <button type="button" className="toolbar-button" onClick={() => void openFileDialog()}>
-            Open file
-          </button>
-          <button type="button" className="toolbar-button" onClick={() => void openFolder()}>
-            Open folder
-          </button>
-
-          {folderPath && (
-            <button type="button" className="toolbar-button subtle" onClick={toggleSidebar}>
-              {sidebarOpen ? "Hide tree" : "Show tree"}
-            </button>
-          )}
-
-          {recentFiles.length > 0 && (
-            <details className="recent-menu">
-              <summary className="toolbar-button subtle">Recent</summary>
-              <div className="recent-list">
-                {recentFiles.map((path) => (
-                  <button
-                    key={path}
-                    type="button"
-                    className="recent-item"
-                    title={path}
-                    onClick={() => void loadFile(path)}
-                  >
-                    {getFileName(path)}
-                  </button>
-                ))}
-              </div>
-            </details>
-          )}
-
-          {document && (
-            <>
-              <button type="button" className="toolbar-button subtle" onClick={openSearch}>
-                Search
-              </button>
-              <button type="button" className="toolbar-button subtle" onClick={handlePrint}>
-                Print
-              </button>
-            </>
-          )}
-
-          <button
-            type="button"
-            className="toolbar-button subtle"
-            onClick={() => void openDefaultAppsSettings()}
-          >
-            Set as default
-          </button>
-        </div>
-
-        <div className="toolbar-title" title={document?.path ?? folderPath ?? "Markdown Viewer"}>
-          {document ? getFileName(document.path) : folderPath ? getFileName(folderPath) : "Markdown Viewer"}
-        </div>
-
-        <div className="toolbar-right">
-          <button type="button" className="toolbar-button" onClick={zoomOut} title="Zoom out (Ctrl -)">
-            -
-          </button>
-          <button
-            type="button"
-            className="toolbar-button zoom-label"
-            onClick={resetZoom}
-            title="Reset zoom (Ctrl 0)"
-          >
-            {Math.round(zoom * 100)}%
-          </button>
-          <button type="button" className="toolbar-button" onClick={zoomIn} title="Zoom in (Ctrl +)">
-            +
-          </button>
-        </div>
-      </header>
-
-      {isOpen && document && (
-        <SearchBar
-          query={query}
-          matchCount={matchCount}
-          onChange={setQuery}
-          onClose={closeSearch}
+      <div className="shell">
+        <ActivityBar
+          activeView={activeView}
+          onChangeView={setActiveView}
+          onOpenSettings={handleOpenSettings}
         />
-      )}
 
-      <div className="workspace">
-        {folderPath && sidebarOpen && (
-          <aside className="sidebar">
-            <div className="sidebar-header">
-              <span className="sidebar-title" title={folderPath}>
-                {getFileName(folderPath)}
-              </span>
-              <button
-                type="button"
-                className="sidebar-close"
-                title="Close folder"
-                onClick={closeFolder}
-              >
-                ×
-              </button>
-            </div>
-            <FileTree
-              rootPath={folderPath}
-              activePath={document?.path ?? null}
-              onSelectFile={handleSelectFile}
-            />
-          </aside>
+        {activeView === "explorer" && (
+          <ExplorerPanel
+            folderPath={folderPath}
+            activePath={document?.path ?? null}
+            recentFiles={recentFiles}
+            onOpenFolder={() => void openFolder()}
+            onOpenFile={() => void openFileDialog()}
+            onSelectFile={handleSelectFile}
+            onCloseFolder={closeFolder}
+          />
         )}
 
-        <main className="viewer-shell">
-          {isLoading && <div className="status-banner">Loading markdown...</div>}
-          {error && <div className="status-banner error">{error}</div>}
+        <div className="main-panel">
+          <ContentHeader
+            title={document ? getFileName(document.path) : "Welcome"}
+            subtitle={document?.path}
+            zoom={zoom}
+            onZoomIn={zoomIn}
+            onZoomOut={zoomOut}
+            onResetZoom={resetZoom}
+            onPrint={document ? () => window.print() : undefined}
+          />
 
-          {!document && !isLoading && !error && (
-            <section className="empty-state">
-              <h1>Markdown Viewer</h1>
-              <p>
-                Open a `.md` file or folder to browse markdown with the file tree, drag a file here,
-                or double-click a Markdown file in Explorer.
-              </p>
-              <div className="empty-actions">
-                <button type="button" className="primary-button" onClick={() => void openFileDialog()}>
-                  Open file
-                </button>
-                <button type="button" className="primary-button secondary" onClick={() => void openFolder()}>
-                  Open folder
-                </button>
+          {showSearch && (
+            <SearchBar
+              query={query}
+              matchCount={matchCount}
+              onChange={setQuery}
+              onClose={() => {
+                closeSearch();
+                setActiveView("explorer");
+              }}
+            />
+          )}
+
+          <main className="viewer-shell">
+            {isLoading && <div className="status-banner">Loading markdown...</div>}
+            {error && <div className="status-banner error">{error}</div>}
+
+            {!document && !isLoading && !error && activeView === "search" && (
+              <section className="welcome-state">
+                <div className="welcome-card">
+                  <h1>Search</h1>
+                  <p>Open a markdown file first, then press Ctrl+F or use the search icon.</p>
+                  <button type="button" className="welcome-btn primary" onClick={() => setActiveView("explorer")}>
+                    Go to Explorer
+                  </button>
+                </div>
+              </section>
+            )}
+
+            {!document && !isLoading && !error && activeView !== "search" && (
+              <section className="welcome-state">
+                <div className="welcome-card">
+                  <div className="welcome-icon">
+                    <FolderOpenIcon size={40} />
+                  </div>
+                  <h1>Markdown Viewer</h1>
+                  <p>
+                    Open a folder to browse your notes with an Explorer-style tree, or open a single
+                    markdown file to start reading.
+                  </p>
+                  <div className="welcome-actions">
+                    <button
+                      type="button"
+                      className="welcome-btn primary"
+                      onClick={() => void openFolder()}
+                    >
+                      <FolderOpenIcon size={18} />
+                      Open folder
+                    </button>
+                    <button
+                      type="button"
+                      className="welcome-btn"
+                      onClick={() => void openFileDialog()}
+                    >
+                      Open file
+                    </button>
+                  </div>
+                  <p className="welcome-hint">
+                    Tip: use the Explorer panel on the left — the purple <strong>Open folder</strong> button is always there.
+                  </p>
+                </div>
+              </section>
+            )}
+
+            {document && (
+              <div className="viewer-scroll">
+                <MarkdownViewer
+                  content={document.content}
+                  baseDirectory={document.directory}
+                  zoom={zoom}
+                  searchQuery={query}
+                />
               </div>
-              <p className="hint">Zoom with Ctrl + mouse wheel, Ctrl + Plus/Minus, or Ctrl + 0 to reset.</p>
-            </section>
-          )}
-
-          {document && (
-            <div className="viewer-scroll">
-              <MarkdownViewer
-                content={document.content}
-                baseDirectory={document.directory}
-                zoom={zoom}
-                searchQuery={query}
-              />
-            </div>
-          )}
-        </main>
+            )}
+          </main>
+        </div>
       </div>
 
-      {isDragging && <div className="drop-overlay">Drop Markdown file to open</div>}
+      {isDragging && <div className="drop-overlay">Drop markdown file to open</div>}
     </div>
   );
 }

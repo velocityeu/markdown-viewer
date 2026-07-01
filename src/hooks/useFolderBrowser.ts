@@ -14,7 +14,6 @@ function readStoredFolder(): string | null {
 
 export function useFolderBrowser() {
   const [folderPath, setFolderPath] = useState<string | null>(null);
-  const [sidebarOpen, setSidebarOpen] = useState(true);
 
   useEffect(() => {
     setFolderPath(readStoredFolder());
@@ -29,7 +28,6 @@ export function useFolderBrowser() {
     if (typeof selected === "string") {
       setFolderPath(selected);
       localStorage.setItem(STORAGE_KEY, selected);
-      setSidebarOpen(true);
     }
   }, []);
 
@@ -43,7 +41,6 @@ export function useFolderBrowser() {
     const parent = parts.join(filePath.includes("\\") ? "\\" : "/");
     setFolderPath(parent);
     localStorage.setItem(STORAGE_KEY, parent);
-    setSidebarOpen(true);
   }, []);
 
   const closeFolder = useCallback(() => {
@@ -51,16 +48,10 @@ export function useFolderBrowser() {
     localStorage.removeItem(STORAGE_KEY);
   }, []);
 
-  const toggleSidebar = useCallback(() => {
-    setSidebarOpen((current) => !current);
-  }, []);
-
   return {
     folderPath,
-    sidebarOpen,
     openFolder,
     setFolderFromFile,
     closeFolder,
-    toggleSidebar,
   };
 }
