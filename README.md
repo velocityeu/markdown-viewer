@@ -1,5 +1,7 @@
 # Markdown Viewer
 
+[![GitHub](https://img.shields.io/badge/GitHub-velocityeu%2Fmarkdown--viewer-blue)](https://github.com/velocityeu/markdown-viewer)
+
 A clean, lightweight, native-feeling Windows application for viewing Markdown files with rich content support, including embedded images.
 
 Built with **Tauri 2**, **React**, **TypeScript**, `react-markdown`, `remark-gfm`, and `rehype-raw`.
