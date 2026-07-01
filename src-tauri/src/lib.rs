@@ -11,6 +11,15 @@ struct MarkdownFile {
     directory: String,
 }
 
+#[derive(serde::Serialize)]
+struct DirEntry {
+    name: String,
+    path: String,
+    is_dir: bool,
+}
+
+const SKIP_DIR_NAMES: &[&str] = &[".git", "node_modules", "target", "dist", ".tauri-tools"];
+
 fn normalize_markdown_path(path: &str) -> Result<PathBuf, String> {
     let candidate = PathBuf::from(path);
     if !candidate.exists() {
@@ -67,6 +76,68 @@ fn read_markdown_file(path: String) -> Result<MarkdownFile, String> {
     })
 }
 
+fn should_skip_dir(name: &str) -> bool {
+    SKIP_DIR_NAMES.contains(&name)
+}
+
+#[tauri::command]
+fn list_directory(path: String) -> Result<Vec<DirEntry>, String> {
+    let directory = PathBuf::from(&path);
+    if !directory.is_dir() {
+        return Err(format!("Not a directory: {path}"));
+    }
+
+    let resolved = directory
+        .canonicalize()
+        .map_err(|error| format!("Failed to resolve directory: {error}"))?;
+
+    let mut entries = Vec::new();
+    let read_dir = fs::read_dir(&resolved).map_err(|error| error.to_string())?;
+
+    for entry in read_dir {
+        let entry = entry.map_err(|error| error.to_string())?;
+        let file_type = entry.file_type().map_err(|error| error.to_string())?;
+        let name = entry.file_name().to_string_lossy().to_string();
+
+        if file_type.is_dir() {
+            if should_skip_dir(&name) {
+                continue;
+            }
+
+            entries.push(DirEntry {
+                name,
+                path: entry.path().to_string_lossy().to_string(),
+                is_dir: true,
+            });
+            continue;
+        }
+
+        if file_type.is_file()
+            && entry
+                .path()
+                .extension()
+                .and_then(|ext| ext.to_str())
+                .map(|ext| ext.eq_ignore_ascii_case("md"))
+                == Some(true)
+        {
+            entries.push(DirEntry {
+                name,
+                path: entry.path().to_string_lossy().to_string(),
+                is_dir: false,
+            });
+        }
+    }
+
+    entries.sort_by(|left, right| {
+        right
+            .is_dir
+            .cmp(&left.is_dir)
+            .then_with(|| left.name.to_lowercase().cmp(&right.name.to_lowercase()))
+    });
+
+    Ok(entries)
+}
+
 #[tauri::command]
 fn resolve_image_path(base_dir: String, src: String) -> Result<String, String> {
     let resolved = resolve_relative_path(&base_dir, &src)?;
@@ -104,7 +175,11 @@ pub fn run() {
                 let _ = window.set_focus();
             }
         }))
-        .invoke_handler(tauri::generate_handler![read_markdown_file, resolve_image_path])
+        .invoke_handler(tauri::generate_handler![
+            read_markdown_file,
+            resolve_image_path,
+            list_directory
+        ])
         .setup(|app| {
             if let Ok(matches) = app.cli().matches() {
                 if let Some(path) = extract_cli_file(&matches) {

@@ -14,6 +14,7 @@ Built with **Tauri 2**, **React**, **TypeScript**, `react-markdown`, `remark-gfm
 - Embedded local images resolved relative to the opened file
 - Dark mode UI
 - Zoom with `Ctrl + mouse wheel`, `Ctrl + Plus`, `Ctrl + Minus`, and `Ctrl + 0`
+- Open folder with Explorer-style tree sidebar for quick file switching
 - Drag and drop `.md` files into the window
 - Command-line opening: `Markdown Viewer.exe myfile.md`
 - Recent files menu

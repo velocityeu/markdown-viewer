@@ -97,9 +97,122 @@ button {
   min-width: 64px;
 }
 
+.workspace {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.sidebar {
+  width: 280px;
+  min-width: 220px;
+  max-width: 360px;
+  display: flex;
+  flex-direction: column;
+  border-right: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(14, 15, 18, 0.96);
+}
+
+.sidebar-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 10px 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.sidebar-title {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.9rem;
+  color: #aeb3bd;
+  font-weight: 600;
+}
+
+.sidebar-close {
+  border: none;
+  background: transparent;
+  color: #aeb3bd;
+  cursor: pointer;
+  font-size: 1.2rem;
+  line-height: 1;
+  padding: 2px 6px;
+  border-radius: 6px;
+}
+
+.sidebar-close:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: #e8eaed;
+}
+
+.file-tree {
+  flex: 1;
+  overflow: auto;
+  padding: 8px 0 16px;
+}
+
+.tree-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  border: none;
+  background: transparent;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+  padding: 5px 10px 5px 0;
+  border-radius: 6px;
+  min-height: 28px;
+}
+
+.tree-item:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.tree-item.file.active {
+  background: rgba(88, 101, 242, 0.22);
+  color: #ffffff;
+}
+
+.tree-item.root {
+  font-weight: 600;
+  padding-left: 10px;
+}
+
+.tree-chevron {
+  width: 12px;
+  color: #7f8694;
+  flex-shrink: 0;
+  font-size: 0.75rem;
+}
+
+.tree-icon {
+  flex-shrink: 0;
+  font-size: 0.9rem;
+}
+
+.tree-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.9rem;
+}
+
+.tree-loading,
+.tree-empty {
+  color: #7f8694;
+  font-size: 0.82rem;
+  padding: 4px 10px 4px 28px;
+}
+
 .viewer-shell {
   position: relative;
   flex: 1;
+  min-width: 0;
   overflow: hidden;
 }
 
@@ -137,8 +250,15 @@ button {
   color: #7f8694;
 }
 
-.primary-button {
+.empty-actions {
+  display: flex;
+  gap: 10px;
   margin-top: 8px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.primary-button {
   border: none;
   border-radius: 10px;
   padding: 10px 18px;
@@ -150,6 +270,15 @@ button {
 
 .primary-button:hover {
   background: #4752c4;
+}
+
+.primary-button.secondary {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.primary-button.secondary:hover {
+  background: rgba(255, 255, 255, 0.12);
 }
 
 .status-banner {
@@ -376,6 +505,7 @@ mark.search-hit {
 
 @media print {
   .toolbar,
+  .sidebar,
   .search-bar,
   .drop-overlay,
   .status-banner,
