@@ -74,6 +74,15 @@ export function SettingsIcon({ size = 20, className }: IconProps) {
   );
 }
 
+export function PanelCollapseIcon({ size = 16, className }: IconProps) {
+  return (
+    <svg className={className} width={size} height={size} viewBox="0 0 24 24" fill="none" aria-hidden>
+      <path d="M15 6 9 12l6 6" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+      <path d="M5 5v14" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+    </svg>
+  );
+}
+
 export function ChevronIcon({ expanded, size = 12, className }: IconProps & { expanded: boolean }) {
   return (
     <svg

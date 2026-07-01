@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { FileTree } from "./FileTree";
-import { FileIcon, FolderOpenIcon } from "./icons";
+import { FileIcon, FolderOpenIcon, PanelCollapseIcon } from "./icons";
 
 interface ExplorerPanelProps {
   folderPath: string | null;
@@ -10,6 +10,7 @@ interface ExplorerPanelProps {
   onOpenFile: () => void;
   onSelectFile: (path: string) => void;
   onCloseFolder: () => void;
+  onCollapse: () => void;
 }
 
 function getFileName(path: string) {
@@ -25,6 +26,7 @@ export function ExplorerPanel({
   onOpenFile,
   onSelectFile,
   onCloseFolder,
+  onCollapse,
 }: ExplorerPanelProps) {
   const [filter, setFilter] = useState("");
 
@@ -38,6 +40,9 @@ export function ExplorerPanel({
           </button>
           <button type="button" className="icon-btn" title="Open file" onClick={onOpenFile}>
             <FileIcon size={16} />
+          </button>
+          <button type="button" className="icon-btn" title="Collapse Explorer" onClick={onCollapse}>
+            <PanelCollapseIcon size={16} />
           </button>
         </div>
       </div>

@@ -4,19 +4,27 @@ export type ActivityView = "explorer" | "search" | "settings";
 
 interface ActivityBarProps {
   activeView: ActivityView;
+  explorerCollapsed: boolean;
+  onToggleExplorer: () => void;
   onChangeView: (view: ActivityView) => void;
   onOpenSettings: () => void;
 }
 
-export function ActivityBar({ activeView, onChangeView, onOpenSettings }: ActivityBarProps) {
+export function ActivityBar({
+  activeView,
+  explorerCollapsed,
+  onToggleExplorer,
+  onChangeView,
+  onOpenSettings,
+}: ActivityBarProps) {
   return (
     <nav className="activity-bar" aria-label="Primary">
       <div className="activity-bar-top">
         <button
           type="button"
-          className={`activity-btn ${activeView === "explorer" ? "active" : ""}`}
-          title="Explorer"
-          onClick={() => onChangeView("explorer")}
+          className={`activity-btn ${activeView === "explorer" && !explorerCollapsed ? "active" : ""}`}
+          title={explorerCollapsed ? "Show Explorer" : "Explorer"}
+          onClick={onToggleExplorer}
         >
           <FilesIcon />
         </button>

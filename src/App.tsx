@@ -30,6 +30,30 @@ function App() {
   );
   const matchCount = useSearchMatchCount(query, document?.content ?? "");
   const [activeView, setActiveView] = useState<ActivityView>("explorer");
+  const [explorerCollapsed, setExplorerCollapsed] = useState(() => {
+    try {
+      return localStorage.getItem("markdown-viewer-explorer-collapsed") === "true";
+    } catch {
+      return false;
+    }
+  });
+
+  const toggleExplorer = () => {
+    if (activeView === "explorer" && !explorerCollapsed) {
+      setExplorerCollapsed(true);
+      localStorage.setItem("markdown-viewer-explorer-collapsed", "true");
+      return;
+    }
+
+    setActiveView("explorer");
+    setExplorerCollapsed(false);
+    localStorage.setItem("markdown-viewer-explorer-collapsed", "false");
+  };
+
+  const collapseExplorer = () => {
+    setExplorerCollapsed(true);
+    localStorage.setItem("markdown-viewer-explorer-collapsed", "true");
+  };
 
   useEffect(() => {
     if (document?.path) {
@@ -64,11 +88,15 @@ function App() {
       <div className="shell">
         <ActivityBar
           activeView={activeView}
+          explorerCollapsed={explorerCollapsed}
+          onToggleExplorer={toggleExplorer}
           onChangeView={setActiveView}
           onOpenSettings={handleOpenSettings}
         />
 
-        {activeView === "explorer" && (
+        <div
+          className={`explorer-panel-wrap ${explorerCollapsed || activeView !== "explorer" ? "collapsed" : ""}`}
+        >
           <ExplorerPanel
             folderPath={folderPath}
             activePath={document?.path ?? null}
@@ -77,8 +105,9 @@ function App() {
             onOpenFile={() => void openFileDialog()}
             onSelectFile={handleSelectFile}
             onCloseFolder={closeFolder}
+            onCollapse={collapseExplorer}
           />
-        )}
+        </div>
 
         <div className="main-panel">
           <ContentHeader
