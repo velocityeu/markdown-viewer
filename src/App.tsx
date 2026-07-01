@@ -1,15 +1,15 @@
-import { openUrl } from "@tauri-apps/plugin-opener";
 import { ActivityBar, type ActivityView } from "./components/ActivityBar";
 import { ContentHeader } from "./components/ContentHeader";
-import { ExplorerPanel } from "./components/ExplorerPanel";
 import { FolderOpenIcon } from "./components/icons";
 import { MarkdownViewer } from "./components/MarkdownViewer";
 import { SearchBar } from "./components/SearchBar";
+import { SidePanel } from "./components/SidePanel";
 import { useEffect, useState } from "react";
 import { useDocumentSearch } from "./hooks/useDocumentSearch";
 import { useFolderBrowser } from "./hooks/useFolderBrowser";
 import { useMarkdownFile } from "./hooks/useMarkdownFile";
 import { useRecentFiles } from "./hooks/useRecentFiles";
+import { useTheme } from "./hooks/useTheme";
 import { useSearchMatchCount } from "./components/SearchHighlight";
 import { useZoom } from "./hooks/useZoom";
 import "./App.css";
@@ -29,8 +29,9 @@ function App() {
     Boolean(document),
   );
   const matchCount = useSearchMatchCount(query, document?.content ?? "");
+  const { preference: theme, setThemePreference } = useTheme();
   const [activeView, setActiveView] = useState<ActivityView>("explorer");
-  const [explorerCollapsed, setExplorerCollapsed] = useState(() => {
+  const [sidePanelCollapsed, setSidePanelCollapsed] = useState(() => {
     try {
       return localStorage.getItem("markdown-viewer-explorer-collapsed") === "true";
     } catch {
@@ -38,20 +39,23 @@ function App() {
     }
   });
 
+  const showSidePanel =
+    !sidePanelCollapsed && (activeView === "explorer" || activeView === "settings");
+
   const toggleExplorer = () => {
-    if (activeView === "explorer" && !explorerCollapsed) {
-      setExplorerCollapsed(true);
+    if (activeView === "explorer" && !sidePanelCollapsed) {
+      setSidePanelCollapsed(true);
       localStorage.setItem("markdown-viewer-explorer-collapsed", "true");
       return;
     }
 
     setActiveView("explorer");
-    setExplorerCollapsed(false);
+    setSidePanelCollapsed(false);
     localStorage.setItem("markdown-viewer-explorer-collapsed", "false");
   };
 
-  const collapseExplorer = () => {
-    setExplorerCollapsed(true);
+  const collapseSidePanel = () => {
+    setSidePanelCollapsed(true);
     localStorage.setItem("markdown-viewer-explorer-collapsed", "true");
   };
 
@@ -78,7 +82,8 @@ function App() {
 
   const handleOpenSettings = () => {
     setActiveView("settings");
-    void openUrl("ms-settings:defaultapps");
+    setSidePanelCollapsed(false);
+    localStorage.setItem("markdown-viewer-explorer-collapsed", "false");
   };
 
   const showSearch = isOpen && document && activeView === "search";
@@ -88,24 +93,25 @@ function App() {
       <div className="shell">
         <ActivityBar
           activeView={activeView}
-          explorerCollapsed={explorerCollapsed}
+          sidePanelCollapsed={sidePanelCollapsed}
           onToggleExplorer={toggleExplorer}
           onChangeView={setActiveView}
           onOpenSettings={handleOpenSettings}
         />
 
-        <div
-          className={`explorer-panel-wrap ${explorerCollapsed || activeView !== "explorer" ? "collapsed" : ""}`}
-        >
-          <ExplorerPanel
+        <div className={`side-panel-wrap ${showSidePanel ? "" : "collapsed"}`}>
+          <SidePanel
+            activeView={activeView}
             folderPath={folderPath}
             activePath={document?.path ?? null}
             recentFiles={recentFiles}
+            theme={theme}
+            onThemeChange={setThemePreference}
             onOpenFolder={() => void openFolder()}
             onOpenFile={() => void openFileDialog()}
             onSelectFile={handleSelectFile}
             onCloseFolder={closeFolder}
-            onCollapse={collapseExplorer}
+            onCollapse={collapseSidePanel}
           />
         </div>
 
@@ -177,7 +183,7 @@ function App() {
                     </button>
                   </div>
                   <p className="welcome-hint">
-                    Tip: use the Explorer panel on the left — the purple <strong>Open folder</strong> button is always there.
+                    Tip: use the Explorer panel on the left, or change theme in Settings.
                   </p>
                 </div>
               </section>

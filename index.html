@@ -5,6 +5,21 @@
     <link rel="icon" type="image/png" href="/tauri.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Markdown Viewer</title>
+    <script>
+      (function () {
+        var stored = localStorage.getItem("markdown-viewer-theme");
+        var resolved =
+          stored === "light"
+            ? "light"
+            : stored === "dark"
+              ? "dark"
+              : window.matchMedia("(prefers-color-scheme: light)").matches
+                ? "light"
+                : "dark";
+        document.documentElement.dataset.theme = resolved;
+        document.documentElement.style.colorScheme = resolved;
+      })();
+    </script>
   </head>
 
   <body>

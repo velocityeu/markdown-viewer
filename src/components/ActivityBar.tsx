@@ -4,7 +4,7 @@ export type ActivityView = "explorer" | "search" | "settings";
 
 interface ActivityBarProps {
   activeView: ActivityView;
-  explorerCollapsed: boolean;
+  sidePanelCollapsed: boolean;
   onToggleExplorer: () => void;
   onChangeView: (view: ActivityView) => void;
   onOpenSettings: () => void;
@@ -12,7 +12,7 @@ interface ActivityBarProps {
 
 export function ActivityBar({
   activeView,
-  explorerCollapsed,
+  sidePanelCollapsed,
   onToggleExplorer,
   onChangeView,
   onOpenSettings,
@@ -22,8 +22,8 @@ export function ActivityBar({
       <div className="activity-bar-top">
         <button
           type="button"
-          className={`activity-btn ${activeView === "explorer" && !explorerCollapsed ? "active" : ""}`}
-          title={explorerCollapsed ? "Show Explorer" : "Explorer"}
+          className={`activity-btn ${activeView === "explorer" && !sidePanelCollapsed ? "active" : ""}`}
+          title={sidePanelCollapsed ? "Show Explorer" : "Explorer"}
           onClick={onToggleExplorer}
         >
           <FilesIcon />
@@ -39,7 +39,7 @@ export function ActivityBar({
       </div>
       <button
         type="button"
-        className={`activity-btn ${activeView === "settings" ? "active" : ""}`}
+        className={`activity-btn ${activeView === "settings" && !sidePanelCollapsed ? "active" : ""}`}
         title="Settings"
         onClick={onOpenSettings}
       >
