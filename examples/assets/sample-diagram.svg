@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="480" height="180" viewBox="0 0 480 180" role="img" aria-label="Markdown Viewer diagram">
+  <rect width="480" height="180" rx="16" fill="#1e1f22"/>
+  <rect x="24" y="36" width="120" height="56" rx="10" fill="#5865f2"/>
+  <rect x="180" y="36" width="120" height="56" rx="10" fill="#3ba55d"/>
+  <rect x="336" y="36" width="120" height="56" rx="10" fill="#faa81a"/>
+  <text x="84" y="70" text-anchor="middle" fill="white" font-family="Segoe UI, sans-serif" font-size="16">Open .md</text>
+  <text x="240" y="70" text-anchor="middle" fill="white" font-family="Segoe UI, sans-serif" font-size="16">Render</text>
+  <text x="396" y="70" text-anchor="middle" fill="#1e1f22" font-family="Segoe UI, sans-serif" font-size="16">Read</text>
+  <path d="M144 64 H180" stroke="#aeb3bd" stroke-width="4"/>
+  <path d="M300 64 H336" stroke="#aeb3bd" stroke-width="4"/>
+  <polygon points="180,64 172,58 172,70" fill="#aeb3bd"/>
+  <polygon points="336,64 328,58 328,70" fill="#aeb3bd"/>
+  <text x="240" y="132" text-anchor="middle" fill="#e8eaed" font-family="Segoe UI, sans-serif" font-size="18">Markdown Viewer sample asset</text>
+</svg>
