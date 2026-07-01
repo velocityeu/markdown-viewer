@@ -62,7 +62,7 @@ Output:
 src-tauri/target/release/markdown-viewer.exe
 ```
 
-### NSIS installer
+### MSI installer (recommended on Windows)
 
 ```bash
 npm run build:installer
@@ -71,8 +71,16 @@ npm run build:installer
 Output:
 
 ```text
-src-tauri/target/release/bundle/nsis/Markdown Viewer_0.1.0_x64-setup.exe
+src-tauri/target/release/bundle/msi/Markdown Viewer_0.1.0_x64_en-US.msi
 ```
+
+### NSIS installer (optional)
+
+```bash
+npm run build:installer:nsis
+```
+
+If NSIS extraction fails with `Access is denied`, use the MSI installer above or run the NSIS build from an elevated terminal with antivirus exclusions for `%LOCALAPPDATA%\\tauri`.
 
 ## Windows integration
 

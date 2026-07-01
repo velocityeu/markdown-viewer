@@ -10,7 +10,8 @@
     "preview": "vite preview",
     "tauri": "tauri",
     "build:portable": "tauri build --no-bundle",
-    "build:installer": "tauri build --bundles nsis"
+    "build:installer": "tauri build --bundles msi",
+    "build:installer:nsis": "tauri build --bundles nsis"
   },
   "dependencies": {
     "@tauri-apps/api": "^2",
