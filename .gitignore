@@ -25,3 +25,7 @@ app-icon.jpg
 *.njsproj
 *.sln
 *.sw?
+
+# Local installer copies (publish via GitHub Releases)
+dist-installer/
+
